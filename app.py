@@ -7,6 +7,7 @@ from io import BytesIO
 st.set_page_config(page_title="Unit 11: O Sa'osi II", page_icon="💰", layout="centered")
 
 # 進階 CSS 設計：卡片懸浮效果、大按鈕、質感字體
+# 我們移除了所有連字號，讓介面看起來更乾淨專業
 st.markdown("""
     <style>
     /* 全局字體優化 */
@@ -67,29 +68,34 @@ st.markdown("""
         background-color: #FFD54F;
         border-color: #FFA000;
     }
+    
+    /* 進度條顏色 */
+    .stProgress > div > div > div > div {
+        background-color: #FBC02D;
+    }
     </style>
 """, unsafe_allow_html=True)
 
 # --- 1. 教學內容資料庫 ---
-# 10 個核心詞彙 (包含修正後的拼寫)
+# 10 個核心詞彙 (已移除連字號，修正拼寫)
 vocab_data = [
     {"amis": "'Enem", "chi": "六 (6)", "icon": "6️⃣", "type": "num"},
     {"amis": "Pito", "chi": "七 (7)", "icon": "7️⃣", "type": "num"},
     {"amis": "Falo", "chi": "八 (8)", "icon": "8️⃣", "type": "num"},
     {"amis": "Siwa", "chi": "九 (9)", "icon": "9️⃣", "type": "num"},
     {"amis": "Mo^etep", "chi": "十 (10)", "icon": "🔟", "type": "num"},
-    {"amis": "Safaw-cecay", "chi": "十一 (11)", "icon": "1️⃣1️⃣", "type": "num"},
-    {"amis": "Safaw-tosa", "chi": "十二 (12)", "icon": "1️⃣2️⃣", "type": "num"},
+    {"amis": "Safaw cecay", "chi": "十一 (11)", "icon": "1️⃣1️⃣", "type": "num"},
+    {"amis": "Safaw tosa", "chi": "十二 (12)", "icon": "1️⃣2️⃣", "type": "num"},
     {"amis": "Isot", "chi": "二十 (20)", "icon": "2️⃣0️⃣", "type": "num"},
     {"amis": "Payso", "chi": "錢 / 硬幣", "icon": "💰", "type": "noun"},
     {"amis": "Toki", "chi": "時間 / 鐘", "icon": "⏰", "type": "noun"},
 ]
 
-# 5 個核心句型 (依照您的修正)
+# 5 個核心句型 (依照您的修正，移除連字號)
 sentences = [
     {"amis": "Pina ko payso?", "chi": "有多少錢？", "icon": "🤔"},
     {"amis": "'Enem ko wawa.", "chi": "有六個小孩。", "icon": "👶"},
-    {"amis": "Safaw-tosa ko toki.", "chi": "現在十二點鐘。", "icon": "🕛"},
+    {"amis": "Safaw tosa ko toki.", "chi": "現在十二點鐘。", "icon": "🕛"},
     {"amis": "Mo^etep ko payso no mako.", "chi": "我有十元。", "icon": "💵"},
     {"amis": "Pito ko foting.", "chi": "有七條魚。", "icon": "🐟"},
 ]
@@ -97,14 +103,15 @@ sentences = [
 # --- 2. 工具函數 ---
 def play_audio(text):
     try:
-        tts = gTTS(text=text, lang='ja') # 使用日語引擎模擬阿美語發音
+        # 使用日語引擎模擬阿美語發音，這在沒有專屬 TTS 時是很好的替代方案
+        tts = gTTS(text=text, lang='ja') 
         fp = BytesIO()
         tts.write_to_fp(fp)
         st.audio(fp, format='audio/mp3')
-    except:
-        st.warning("語音生成暫時無法使用")
+    except Exception as e:
+        st.error(f"語音生成錯誤: {e}")
 
-# 初始化 Session
+# 初始化 Session State (確保變數存在)
 if 'score' not in st.session_state:
     st.session_state.score = 0
 if 'stage' not in st.session_state:
@@ -114,14 +121,14 @@ if 'stage' not in st.session_state:
 st.markdown("<h1 style='text-align: center; color: #Fbc02d;'>Unit 11: O Sa'osi II</h1>", unsafe_allow_html=True)
 st.markdown("<p style='text-align: center; color: #666;'>進階數字與金錢：學會算錢與看時間</p>", unsafe_allow_html=True)
 
-# 進度條
+# 進度條顯示
 progress = min(1.0, st.session_state.stage / 3)
 st.progress(progress)
 
-# 分頁籤
+# 分頁籤設計
 tab1, tab2 = st.tabs(["📚 圖卡學習 (Learning)", "🎮 闖關挑戰 (Challenge)"])
 
-# === 學習模式 ===
+# === Tab 1: 學習模式 ===
 with tab1:
     st.subheader("📝 核心單字 (Vocabulary)")
     
@@ -129,6 +136,7 @@ with tab1:
     col1, col2 = st.columns(2)
     for i, word in enumerate(vocab_data):
         with (col1 if i % 2 == 0 else col2):
+            # HTML 卡片渲染
             st.markdown(f"""
             <div class="word-card">
                 <div class="emoji-icon">{word['icon']}</div>
@@ -136,6 +144,8 @@ with tab1:
                 <div class="chinese-text">{word['chi']}</div>
             </div>
             """, unsafe_allow_html=True)
+            
+            # 發音按鈕 (使用唯一的 key)
             if st.button(f"🔊 聽發音", key=f"btn_{word['amis']}"):
                 play_audio(word['amis'])
 
@@ -156,7 +166,7 @@ with tab1:
         if st.button(f"▶️ 播放句型", key=f"s_btn_{s['amis'][:5]}"):
             play_audio(s['amis'])
 
-# === 挑戰模式 ===
+# === Tab 2: 挑戰模式 ===
 with tab2:
     st.markdown("### 互動測驗")
     
@@ -171,25 +181,29 @@ with tab2:
             
         c1, c2, c3 = st.columns(3)
         with c1:
-            if st.button("8 (Falo)"): st.error("不對喔，Falo 是 8")
+            if st.button("8 (Falo)"): 
+                st.error("不對喔，Falo 是 8")
         with c2:
             if st.button("6 ('Enem)"):
+                st.balloons()
                 st.success("🎉 Correct! 'Enem 是 6")
-                time.sleep(1)
+                time.sleep(1.5)
                 st.session_state.score += 100
                 st.session_state.stage += 1
                 st.rerun()
         with c3:
-            if st.button("9 (Siwa)"): st.error("不對喔，Siwa 是 9")
+            if st.button("9 (Siwa)"): 
+                st.error("不對喔，Siwa 是 9")
 
     # Stage 1: 視覺計數 (小孩)
     elif st.session_state.stage == 1:
         st.info("👀 第二關：數數看")
         st.write("**Q: Pina ko wawa? (有幾個小孩？)**")
         
-        # 視覺化顯示 6 個小孩
-        st.markdown("<div style='font-size: 40px; text-align: center; letter-spacing: 10px;'>👶 👶 👶 👶 👶 👶</div>", unsafe_allow_html=True)
+        # 視覺化顯示 6 個小孩 (圖案重複 6 次)
+        st.markdown("<div style='font-size: 40px; text-align: center; letter-spacing: 10px; margin: 20px 0;'>👶 👶 👶 👶 👶 👶</div>", unsafe_allow_html=True)
         
+        # 選項中也移除連字號
         opts = ["Mo^etep (10)", "'Enem (6)", "Pito (7)"]
         choice = st.radio("請選擇正確的阿美語數字：", opts)
         
@@ -207,8 +221,10 @@ with tab2:
     # Stage 2: 時鐘與時間
     elif st.session_state.stage == 2:
         st.info("⏰ 第三關：看時間")
-        st.markdown("#### Q: Safaw-tosa ko toki.")
-        play_audio("Safaw-tosa ko toki")
+        
+        # 題目：Safaw tosa (移除連字號)
+        st.markdown("#### Q: Safaw tosa ko toki.")
+        play_audio("Safaw tosa ko toki")
         
         st.write("請問這句話是什麼意思？")
         
@@ -218,7 +234,7 @@ with tab2:
             st.markdown("<div style='font-size: 80px; text-align: center;'>🕛</div>", unsafe_allow_html=True)
             if st.button("現在是十二點鐘"):
                 st.balloons()
-                st.success("太棒了！Safaw-tosa 是 12。")
+                st.success("太棒了！Safaw tosa 是 12。")
                 time.sleep(1.5)
                 st.session_state.score += 100
                 st.session_state.stage += 1
@@ -232,10 +248,10 @@ with tab2:
     # 完成畫面
     else:
         st.markdown(f"""
-        <div style='text-align: center; padding: 30px; background-color: #FFF9C4; border-radius: 20px;'>
-            <h1>🏆 單元完成！</h1>
-            <h3>你的得分：{st.session_state.score}</h3>
-            <p>你已經學會數錢和看時間了！</p>
+        <div style='text-align: center; padding: 30px; background-color: #FFF9C4; border-radius: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);'>
+            <h1 style='color: #F57F17;'>🏆 單元完成！</h1>
+            <h3 style='color: #333;'>你的得分：{st.session_state.score}</h3>
+            <p style='font-size: 18px; color: #555;'>你已經學會數錢和看時間了！</p>
         </div>
         """, unsafe_allow_html=True)
         
