@@ -6,8 +6,7 @@ from io import BytesIO
 # --- 0. 系統與視覺配置 ---
 st.set_page_config(page_title="Unit 11: O Sa'osi II", page_icon="💰", layout="centered")
 
-# 進階 CSS 設計：卡片懸浮效果、大按鈕、質感字體
-# 我們移除了所有連字號，讓介面看起來更乾淨專業
+# 進階 CSS 設計
 st.markdown("""
     <style>
     /* 全局字體優化 */
@@ -91,7 +90,7 @@ vocab_data = [
     {"amis": "Toki", "chi": "時間 / 鐘", "icon": "⏰", "type": "noun"},
 ]
 
-# 5 個核心句型 (依照您的修正，移除連字號)
+# 5 個核心句型 (無連字號，使用正確拼寫)
 sentences = [
     {"amis": "Pina ko payso?", "chi": "有多少錢？", "icon": "🤔"},
     {"amis": "'Enem ko wawa.", "chi": "有六個小孩。", "icon": "👶"},
@@ -103,15 +102,16 @@ sentences = [
 # --- 2. 工具函數 ---
 def play_audio(text):
     try:
-        # 使用日語引擎模擬阿美語發音，這在沒有專屬 TTS 時是很好的替代方案
-        tts = gTTS(text=text, lang='ja') 
+        # [核心修正] lang='id' (印尼語)
+        # 印尼語同屬南島語系，發音結構 (母音/R音/重音) 比日語更接近阿美語
+        tts = gTTS(text=text, lang='id') 
         fp = BytesIO()
         tts.write_to_fp(fp)
         st.audio(fp, format='audio/mp3')
     except Exception as e:
         st.error(f"語音生成錯誤: {e}")
 
-# 初始化 Session State (確保變數存在)
+# 初始化 Session State
 if 'score' not in st.session_state:
     st.session_state.score = 0
 if 'stage' not in st.session_state:
@@ -121,22 +121,20 @@ if 'stage' not in st.session_state:
 st.markdown("<h1 style='text-align: center; color: #Fbc02d;'>Unit 11: O Sa'osi II</h1>", unsafe_allow_html=True)
 st.markdown("<p style='text-align: center; color: #666;'>進階數字與金錢：學會算錢與看時間</p>", unsafe_allow_html=True)
 
-# 進度條顯示
+# 進度條
 progress = min(1.0, st.session_state.stage / 3)
 st.progress(progress)
 
-# 分頁籤設計
+# 分頁籤
 tab1, tab2 = st.tabs(["📚 圖卡學習 (Learning)", "🎮 闖關挑戰 (Challenge)"])
 
 # === Tab 1: 學習模式 ===
 with tab1:
     st.subheader("📝 核心單字 (Vocabulary)")
     
-    # 使用 2 column 排版展示單字卡
     col1, col2 = st.columns(2)
     for i, word in enumerate(vocab_data):
         with (col1 if i % 2 == 0 else col2):
-            # HTML 卡片渲染
             st.markdown(f"""
             <div class="word-card">
                 <div class="emoji-icon">{word['icon']}</div>
@@ -145,7 +143,6 @@ with tab1:
             </div>
             """, unsafe_allow_html=True)
             
-            # 發音按鈕 (使用唯一的 key)
             if st.button(f"🔊 聽發音", key=f"btn_{word['amis']}"):
                 play_audio(word['amis'])
 
@@ -173,7 +170,7 @@ with tab2:
     # Stage 0: 聽力辨識
     if st.session_state.stage == 0:
         st.info("👂 第一關：聽音辨位")
-        st.write("請仔細聽，我唸的是哪個數字？")
+        st.write("請仔細聽，我唸的是哪個數字？(注意南島語的發音韻律)")
         
         # 題目：'Enem (6)
         if st.button("🎧 播放題目音檔"):
@@ -195,22 +192,21 @@ with tab2:
             if st.button("9 (Siwa)"): 
                 st.error("不對喔，Siwa 是 9")
 
-    # Stage 1: 視覺計數 (小孩)
+    # Stage 1: 視覺計數
     elif st.session_state.stage == 1:
         st.info("👀 第二關：數數看")
         st.write("**Q: Pina ko wawa? (有幾個小孩？)**")
         
-        # 視覺化顯示 6 個小孩 (圖案重複 6 次)
+        # 視覺化顯示 6 個小孩
         st.markdown("<div style='font-size: 40px; text-align: center; letter-spacing: 10px; margin: 20px 0;'>👶 👶 👶 👶 👶 👶</div>", unsafe_allow_html=True)
         
-        # 選項中也移除連字號
         opts = ["Mo^etep (10)", "'Enem (6)", "Pito (7)"]
         choice = st.radio("請選擇正確的阿美語數字：", opts)
         
         if st.button("送出答案"):
             if "'Enem" in choice:
                 st.balloons()
-                st.success("答對了！ 'Enem ko wawa. (有六個小孩)")
+                st.success("答對了！ 'Enem ko wawa.")
                 time.sleep(1.5)
                 st.session_state.score += 100
                 st.session_state.stage += 1
@@ -222,7 +218,7 @@ with tab2:
     elif st.session_state.stage == 2:
         st.info("⏰ 第三關：看時間")
         
-        # 題目：Safaw tosa (移除連字號)
+        # 題目：Safaw tosa
         st.markdown("#### Q: Safaw tosa ko toki.")
         play_audio("Safaw tosa ko toki")
         
@@ -230,7 +226,6 @@ with tab2:
         
         c1, c2 = st.columns(2)
         with c1:
-            # 顯示 12:00 的時鐘圖示
             st.markdown("<div style='font-size: 80px; text-align: center;'>🕛</div>", unsafe_allow_html=True)
             if st.button("現在是十二點鐘"):
                 st.balloons()
@@ -240,7 +235,6 @@ with tab2:
                 st.session_state.stage += 1
                 st.rerun()
         with c2:
-            # 顯示 10:00 的時鐘圖示
             st.markdown("<div style='font-size: 80px; text-align: center;'>🕙</div>", unsafe_allow_html=True)
             if st.button("現在是十點鐘"):
                 st.error("十點是 Mo^etep ko toki 喔！")
