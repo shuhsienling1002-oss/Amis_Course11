@@ -3,220 +3,160 @@ import time
 import os
 from gtts import gTTS
 from io import BytesIO
+import random
 
 # --- 0. 系統配置 ---
-st.set_page_config(page_title="Unit 3: O loma' no mako", page_icon="🏠", layout="centered")
+st.set_page_config(page_title="Unit 11: O Sa'osi II", page_icon="💰", layout="centered")
 
-# CSS 優化 (卡片與按鈕樣式)
+# CSS 優化
 st.markdown("""
     <style>
     .stButton>button {
         width: 100%;
         border-radius: 20px;
-        font-size: 24px;
-        background-color: #FFD700;
-        color: #333;
-        border: none;
+        font-size: 20px;
+        background-color: #E0F7FA;
+        color: #006064;
+        border: 2px solid #00BCD4;
         padding: 10px;
-        margin-top: 10px;
+        margin-top: 5px;
     }
     .stButton>button:hover {
-        background-color: #FFC107;
+        background-color: #B2EBF2;
         transform: scale(1.02);
     }
-    .big-font {
-        font-size: 40px !important;
-        font-weight: bold;
-        color: #2E86C1;
-        text-align: center;
-        margin-bottom: 5px;
-    }
-    .med-font {
-        font-size: 22px !important;
-        color: #555;
+    .vocab-card {
+        background-color: #ffffff;
+        padding: 15px;
+        border-radius: 10px;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
         text-align: center;
         margin-bottom: 10px;
-    }
-    .card {
-        background-color: #f0f2f6;
-        padding: 20px;
-        border-radius: 15px;
-        text-align: center;
-        margin-bottom: 20px;
-        box-shadow: 2px 2px 5px rgba(0,0,0,0.1);
+        border-left: 5px solid #00BCD4;
     }
     </style>
-    """, unsafe_allow_html=True)
+""", unsafe_allow_html=True)
 
-# --- 1. 數據資料庫 (Unit 3 專屬) ---
-
-# 單字：家庭成員
-VOCABULARY = {
-    "Wama":     {"zh": "爸爸", "emoji": "👨", "file": "u3_wama"},
-    "Wina":     {"zh": "媽媽", "emoji": "👩", "file": "u3_wina"},
-    "Akong":    {"zh": "阿公", "emoji": "👴", "file": "u3_akong"},
-    "Ama":      {"zh": "阿嬤", "emoji": "👵", "file": "u3_ama"},
-    "Kaka":     {"zh": "哥哥/姊姊", "emoji": "👦", "file": "u3_kaka"},
-    "Safa":     {"zh": "弟弟/妹妹", "emoji": "👶", "file": "u3_safa"}
+# --- 1. 內容資料庫 (Unit 11) ---
+# 難度升級：詞彙量增加至 10 個
+vocab_list = {
+    "Enem": "六 (6)",
+    "Pito": "七 (7)",
+    "Falo": "八 (8)",
+    "Siwa": "九 (9)",
+    "Mo^tep": "十 (10)",
+    "Safaw-cecay": "十一 (11)",
+    "Safaw-tosa": "十二 (12)",
+    "Isot": "二十 (20)",
+    "Payso": "錢",
+    "Pina": "多少 (複習)"
 }
 
-# 句型：結合動作 (Unit 2) + 人物 (Unit 3)
-SENTENCES = [
-    {"amis": "Romadiw ci Wina.", "zh": "媽媽在唱歌。", "file": "u3_s_mom_sings"},
-    {"amis": "Mafoti' ci Akong.", "zh": "阿公在睡覺。", "file": "u3_s_grandpa_sleeps"},
-    {"amis": "Cima ko romadiway?", "zh": "誰在唱歌？", "file": "u3_q_who_sings"}
+# 難度升級：句子增加至 5 句，並包含前 10 單元的詞彙 (如 wawa, foting)
+sentences = [
+    {"amis": "Pina ko payso?", "chinese": "有多少錢？", "audio": "u11_s1"},
+    {"amis": "Enem ko wawa.", "chinese": "有六個小孩。", "audio": "u11_s2"},
+    {"amis": "Pito ko foting.", "chinese": "有七條魚。", "audio": "u11_s3"},
+    {"amis": "Mo^tep ko payso no mako.", "chinese": "我有十元。", "audio": "u11_s4"},
+    {"amis": "Safaw-tosa ko jam.", "chinese": "現在十二點鐘。", "audio": "u11_s5"},
 ]
 
-# --- 1.5 智慧語音核心 ---
-def play_audio(text, filename_base=None):
-    # 優先檢查是否有預錄的音檔
-    if filename_base:
-        path_m4a = f"audio/{filename_base}.m4a"
-        if os.path.exists(path_m4a):
-            st.audio(path_m4a, format='audio/mp4')
-            return
-        path_mp3 = f"audio/{filename_base}.mp3"
-        if os.path.exists(path_mp3):
-            st.audio(path_mp3, format='audio/mp3')
-            return
+# --- 2. 核心函數 ---
+def play_audio(text, filename_base):
+    # 實際部署時建議預先生成音檔，此處為即時生成模擬
+    tts = gTTS(text=text, lang='ja') # 近似發音
+    fp = BytesIO()
+    tts.write_to_fp(fp)
+    st.audio(fp, format='audio/mp3')
 
-    # 如果沒有檔案，使用 Google小姐 (印尼語腔調模擬)
-    try:
-        tts = gTTS(text=text, lang='id')
-        fp = BytesIO()
-        tts.write_to_fp(fp)
-        fp.seek(0)
-        st.audio(fp, format='audio/mp3')
-    except:
-        st.caption("🔇 (無聲)")
-
-# --- 2. 狀態管理 ---
+# 初始化 Session
 if 'score' not in st.session_state:
     st.session_state.score = 0
 if 'current_q' not in st.session_state:
     st.session_state.current_q = 0
 
-# --- 3. 學習模式 (Learning Mode) ---
-def show_learning_mode():
-    st.markdown("<h2 style='text-align: center;'>Sakatoolo: O loma' no mako</h2>", unsafe_allow_html=True)
-    st.markdown("<h4 style='text-align: center; color: gray;'>我的家庭 🏠</h4>", unsafe_allow_html=True)
-    
-    # 顯示單字卡
-    col1, col2 = st.columns(2)
-    words = list(VOCABULARY.items())
-    
-    for idx, (amis, data) in enumerate(words):
-        with (col1 if idx % 2 == 0 else col2):
-            with st.container():
-                st.markdown(f"""
-                <div class="card">
-                    <div style="font-size: 60px;">{data['emoji']}</div>
-                    <div class="big-font">{amis}</div>
-                    <div class="med-font">{data['zh']}</div>
-                </div>
-                """, unsafe_allow_html=True)
-                play_audio(amis, filename_base=data.get('file'))
+# --- 3. 介面呈現 ---
+st.markdown("<h1 style='text-align: center; color: #0097A7;'>Unit 11: O Sa'osi II (進階數字)</h1>", unsafe_allow_html=True)
+st.progress((st.session_state.current_q / 3) if st.session_state.current_q < 3 else 1.0)
+
+# 分頁邏輯
+tab1, tab2 = st.tabs(["📖 詞彙與句型", "🎮 闖關挑戰"])
+
+with tab1:
+    st.subheader("📝 單字表 (Vocabulary)")
+    cols = st.columns(2)
+    for i, (amis, chi) in enumerate(vocab_list.items()):
+        with cols[i % 2]:
+            st.markdown(f"""
+            <div class="vocab-card">
+                <div style="font-size: 24px; font-weight: bold; color: #333;">{amis}</div>
+                <div style="font-size: 18px; color: #666;">{chi}</div>
+            </div>
+            """, unsafe_allow_html=True)
+            if st.button(f"🔊 聽 {amis}", key=f"btn_{amis}"):
+                play_audio(amis, f"u11_{amis}")
 
     st.markdown("---")
-    st.markdown("### 🗣️ 句型練習：誰在做什麼？")
-    
-    # 句子 1
-    s1 = SENTENCES[0]
-    st.info(f"🔹 {s1['amis']}")
-    st.caption(f"({s1['zh']})")
-    play_audio(s1['amis'], filename_base=s1.get('file'))
-    
-    # 句子 2
-    s2 = SENTENCES[1]
-    st.info(f"🔹 {s2['amis']}")
-    st.caption(f"({s2['zh']})")
-    play_audio(s2['amis'], filename_base=s2.get('file'))
-    
-    # 問答
-    st.markdown("#### ❓ 問答練習")
-    q = SENTENCES[2]
-    st.success(f"Q: {q['amis']} ({q['zh']})")
-    play_audio(q['amis'], filename_base=q.get('file'))
-    
-    st.warning("A: Ci Wina. (是媽媽。)")
-    play_audio("Ci Wina", filename_base="u3_wina")
+    st.subheader("🗣️ 句型練習 (Sentences)")
+    for s in sentences:
+        st.markdown(f"**{s['amis']}** ({s['chinese']})")
+        if st.button(f"▶️ 播放", key=s['audio']):
+            play_audio(s['amis'], s['audio'])
 
-# --- 4. 測驗模式 (Quiz Mode) ---
-def show_quiz_mode():
-    st.markdown("<h2 style='text-align: center;'>🎮 家庭小偵探</h2>", unsafe_allow_html=True)
-    progress = st.progress(st.session_state.current_q / 3)
-    
-    # 第一關：單字聽力
+with tab2:
     if st.session_state.current_q == 0:
-        st.markdown("### 第一關：這是誰？")
-        st.write("請聽聲音：")
-        play_audio("Akong", filename_base="u3_akong")
+        st.info("第一關：聽力測驗 (聽數字)")
+        play_audio("Falo", "u11_q_falo")
         
-        c1, c2 = st.columns(2)
+        c1, c2, c3 = st.columns(3)
         with c1:
-            if st.button("👴 阿公"):
-                st.balloons()
-                st.success("答對了！ Akong!")
+            if st.button("6 (Enem)"): st.error("不對喔！")
+        with c2:
+            if st.button("8 (Falo)"): 
+                st.success("Correct! Falo 是 8")
                 time.sleep(1)
                 st.session_state.score += 100
                 st.session_state.current_q += 1
                 st.rerun()
-        with c2:
-            if st.button("👵 阿嬤"): st.error("那是 Ama 喔！")
+        with c3:
+            if st.button("10 (Mo^tep)"): st.error("不對喔！")
 
-    # 第二關：句子理解
     elif st.session_state.current_q == 1:
-        st.markdown("### 第二關：誰在唱歌？")
-        st.markdown("#### 請聽句子：")
-        play_audio("Romadiw ci Wina.", filename_base="u3_s_mom_sings")
+        st.info("第二關：情境應用 (錢)")
+        st.markdown("### Q: Pina ko payso? (這裡有多少錢？)")
+        st.markdown("💰 **$20**")
         
-        st.write("請問句子裡是誰在唱歌？")
-        c1, c2 = st.columns(2)
-        with c1:
-            if st.button("👩 媽媽"):
-                st.snow()
-                st.success("沒錯！ Romadiw ci Wina.")
-                time.sleep(1)
-                st.session_state.score += 100
-                st.session_state.current_q += 1
-                st.rerun()
-        with c2:
-            if st.button("👶 妹妹"): st.error("不對喔！")
-
-    # 第三關：問答
-    elif st.session_state.current_q == 2:
-        st.markdown("### 第三關：看圖回答")
-        st.markdown("#### Q: Cima ko mafoti'ay? (誰在睡覺？)")
-        play_audio("Cima ko mafoti'ay?", filename_base="u3_q_who_sleeps") # 模擬問句
+        opts = ["Mo^tep (10)", "Isot (20)", "Siwa (9)"]
+        choice = st.radio("請選擇阿美語：", opts)
         
-        st.markdown("<div style='font-size:80px; text-align:center;'>👴💤</div>", unsafe_allow_html=True)
-        
-        options = ["Ci Wama (是爸爸)", "Ci Akong (是阿公)", "Ci Safa (是弟弟)"]
-        choice = st.radio("請選擇：", options)
-        
-        if st.button("確定送出"):
-            if "Akong" in choice:
+        if st.button("送出答案"):
+            if "Isot" in choice:
                 st.balloons()
-                st.success("太厲害了！全部答對！")
-                time.sleep(1)
                 st.session_state.score += 100
                 st.session_state.current_q += 1
                 st.rerun()
             else:
-                st.error("再看一次圖片喔！")
+                st.error("再算一次！Isot 是 20 喔。")
+
+    elif st.session_state.current_q == 2:
+        st.info("第三關：句子重組")
+        st.markdown("請選出正確的句子：**「有七個小孩」**")
+        st.caption("提示：Recall Unit 3 'wawa' (小孩)")
+        
+        c1, c2 = st.columns(2)
+        with c1:
+            if st.button("Pito ko wawa"):
+                st.success("太棒了！Pito (7) + Wawa (小孩)")
+                time.sleep(1)
+                st.session_state.score += 100
+                st.session_state.current_q += 1
+                st.rerun()
+        with c2:
+            if st.button("Enem ko wawa"): st.error("Enem 是 6 喔！")
 
     else:
-        st.markdown(f"<div style='text-align: center;'><h1>🏆 挑戰完成！</h1><h2>得分：{st.session_state.score}</h2></div>", unsafe_allow_html=True)
-        if st.button("再玩一次"):
-            st.session_state.current_q = 0
+        st.success(f"🎉 恭喜完成 Unit 11！總分：{st.session_state.score}")
+        if st.button("重玩一次"):
             st.session_state.score = 0
+            st.session_state.current_q = 0
             st.rerun()
-
-# --- 5. 主程式入口 ---
-st.sidebar.title("Unit 3: O loma' 🏠")
-mode = st.sidebar.radio("選擇模式", ["📖 學習單詞", "🎮 練習挑戰"])
-
-if mode == "📖 學習單詞":
-    show_learning_mode()
-else:
-    show_quiz_mode()
