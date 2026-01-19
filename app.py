@@ -76,9 +76,9 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # --- 1. 教學內容資料庫 ---
-# 10 個核心詞彙 (已移除連字號，修正拼寫)
+# 10 個核心詞彙
 vocab_data = [
-    {"amis": "'Enem", "chi": "六 (6)", "icon": "6️⃣", "type": "num"},
+    {"amis": "'Enem", "chi": "六 (數字)", "icon": "6️⃣", "type": "num"},
     {"amis": "Pito", "chi": "七 (7)", "icon": "7️⃣", "type": "num"},
     {"amis": "Falo", "chi": "八 (8)", "icon": "8️⃣", "type": "num"},
     {"amis": "Siwa", "chi": "九 (9)", "icon": "9️⃣", "type": "num"},
@@ -90,10 +90,10 @@ vocab_data = [
     {"amis": "Toki", "chi": "時間 / 鐘", "icon": "⏰", "type": "noun"},
 ]
 
-# 5 個核心句型 (無連字號，使用正確拼寫)
+# 5 個核心句型 (修正 'A'enem ko wawa)
 sentences = [
     {"amis": "Pina ko payso?", "chi": "有多少錢？", "icon": "🤔"},
-    {"amis": "'Enem ko wawa.", "chi": "有六個小孩。", "icon": "👶"},
+    {"amis": "'A'enem ko wawa.", "chi": "有六個小孩。", "icon": "👶"},
     {"amis": "Safaw tosa ko toki.", "chi": "現在十二點鐘。", "icon": "🕛"},
     {"amis": "Mo^etep ko payso no mako.", "chi": "我有十元。", "icon": "💵"},
     {"amis": "Pito ko foting.", "chi": "有七條魚。", "icon": "🐟"},
@@ -102,8 +102,7 @@ sentences = [
 # --- 2. 工具函數 ---
 def play_audio(text):
     try:
-        # [核心修正] lang='id' (印尼語)
-        # 印尼語同屬南島語系，發音結構 (母音/R音/重音) 比日語更接近阿美語
+        # 使用印尼語 (id) 發音引擎，韻律較接近阿美語
         tts = gTTS(text=text, lang='id') 
         fp = BytesIO()
         tts.write_to_fp(fp)
@@ -167,10 +166,10 @@ with tab1:
 with tab2:
     st.markdown("### 互動測驗")
     
-    # Stage 0: 聽力辨識
+    # Stage 0: 聽力辨識 (純數字 'Enem)
     if st.session_state.stage == 0:
         st.info("👂 第一關：聽音辨位")
-        st.write("請仔細聽，我唸的是哪個數字？(注意南島語的發音韻律)")
+        st.write("請仔細聽，我唸的是哪個數字？")
         
         # 題目：'Enem (6)
         if st.button("🎧 播放題目音檔"):
@@ -192,7 +191,7 @@ with tab2:
             if st.button("9 (Siwa)"): 
                 st.error("不對喔，Siwa 是 9")
 
-    # Stage 1: 視覺計數
+    # Stage 1: 視覺計數 (算人，使用 'A'enem)
     elif st.session_state.stage == 1:
         st.info("👀 第二關：數數看")
         st.write("**Q: Pina ko wawa? (有幾個小孩？)**")
@@ -200,13 +199,14 @@ with tab2:
         # 視覺化顯示 6 個小孩
         st.markdown("<div style='font-size: 40px; text-align: center; letter-spacing: 10px; margin: 20px 0;'>👶 👶 👶 👶 👶 👶</div>", unsafe_allow_html=True)
         
-        opts = ["Mo^etep (10)", "'Enem (6)", "Pito (7)"]
-        choice = st.radio("請選擇正確的阿美語數字：", opts)
+        # 選項修正為 'A'enem
+        opts = ["Mo^etep (10)", "'A'enem (6)", "Pito (7)"]
+        choice = st.radio("請選擇正確的阿美語數字（注意是算人喔）：", opts)
         
         if st.button("送出答案"):
-            if "'Enem" in choice:
+            if "'A'enem" in choice:
                 st.balloons()
-                st.success("答對了！ 'Enem ko wawa.")
+                st.success("答對了！ 'A'enem ko wawa. (有六個小孩)")
                 time.sleep(1.5)
                 st.session_state.score += 100
                 st.session_state.stage += 1
